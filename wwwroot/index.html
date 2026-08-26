@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>品保流程管理平台</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="preview.css">
+  <link rel="stylesheet" href="brand-theme.css">
+</head>
+<body>
+  <section id="loginView" class="login-view">
+    <div class="login-art">
+      <img class="login-logo" src="images/swan-logo.png" alt="SWAN">
+      <p class="eyebrow">SWAN WORKFLOW</p>
+      <h1>品保流程<br>管理平台</h1>
+      <p>整合會辦、抱怨、開發試製與變更通知，讓案件進度清楚可追。</p>
+    </div>
+    <form id="loginForm" class="login-card">
+      <img class="mobile-login-logo" src="images/swan-logo.png" alt="SWAN">
+      <p class="eyebrow">WELCOME BACK</p>
+      <h2>系統登入</h2>
+      <label>員工密碼<input id="passwordInput" type="password" autocomplete="current-password" required autofocus></label>
+      <button class="primary wide" type="submit">登入平台</button>
+      <p id="loginError" class="error" role="alert"></p>
+    </form>
+  </section>
+
+  <div id="appView" class="app-view hidden">
+    <header class="topbar">
+      <button id="homeButton" class="brand-button" type="button"><img class="topbar-logo" src="images/swan-logo.png" alt="SWAN"><strong class="brand-title">品保流程管理平台</strong></button>
+      <div class="user-area"><span id="userBadge"></span><button id="logoutButton" class="ghost" type="button">登出</button></div>
+    </header>
+
+    <main>
+      <section id="menuView" class="menu-view">
+        <div class="hero-copy">
+          <p class="eyebrow">WORKFLOW CENTER</p>
+          <h1>今天要處理哪一項工作？</h1>
+          <p>選擇功能後可查詢、新增與追蹤案件。</p>
+        </div>
+        <div id="moduleCards" class="module-grid"></div>
+      </section>
+
+      <section id="workspaceView" class="workspace hidden">
+        <div class="workspace-heading">
+          <div><button id="backButton" class="text-button" type="button">← 返回功能選單</button><p class="eyebrow" id="moduleEyebrow">WORKFLOW</p><h1 id="moduleTitle"></h1><p id="moduleDescription"></p></div>
+          <button id="newButton" class="primary" type="button">＋ 新增案件</button>
+        </div>
+        <div class="search-panel">
+          <label class="search-box"><span>搜尋</span><input id="searchInput" placeholder="輸入登錄案號或關鍵字"></label>
+          <label class="check-label"><input id="unfinishedOnly" type="checkbox"> 僅顯示未完成</label>
+          <button id="searchButton" class="secondary" type="button">查詢</button>
+          <button id="holidayButton" class="secondary hidden" type="button">假日設定</button>
+        </div>
+        <div class="table-card"><div id="resultSummary" class="table-summary"></div><div class="table-scroll"><table><thead id="resultHead"></thead><tbody id="resultBody"></tbody></table></div></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="editorDialog" class="editor-dialog">
+    <form method="dialog" class="dialog-shell" onsubmit="return false">
+      <header><div><p class="eyebrow">CASE EDITOR</p><h2 id="editorTitle">案件資料</h2></div><button id="closeEditor" class="icon-button" type="button" aria-label="關閉">×</button></header>
+      <div id="editorContent" class="editor-content"></div>
+      <footer><button id="deleteButton" class="danger hidden" type="button">刪除案件</button><span class="spacer"></span><button id="cancelButton" class="ghost" type="button">取消</button><button id="saveButton" class="primary" type="button">儲存</button></footer>
+    </form>
+  </dialog>
+
+  <dialog id="holidayDialog" class="small-dialog">
+    <div class="dialog-shell"><header><div><p class="eyebrow">CALENDAR</p><h2>假日設定</h2></div><button id="closeHoliday" class="icon-button" type="button">×</button></header><div class="holiday-add"><input id="holidayDate" type="date"><button id="addHoliday" class="primary" type="button">新增</button></div><div id="holidayList" class="holiday-list"></div></div>
+  </dialog>
+
+  <dialog id="imagePreviewDialog" class="image-preview-dialog">
+    <div class="dialog-shell preview-shell">
+      <header><div><p class="eyebrow">IMAGE PREVIEW</p><h2 id="imagePreviewTitle">附件預覽</h2></div><button id="closeImagePreview" class="icon-button" type="button" aria-label="關閉">×</button></header>
+      <div class="image-preview-toolbar" aria-label="圖片縮放工具列">
+        <button id="imageZoomOut" class="ghost zoom-button" type="button" title="縮小">－</button>
+        <span id="imageZoomValue" class="zoom-value">100%</span>
+        <button id="imageZoomIn" class="ghost zoom-button" type="button" title="放大">＋</button>
+        <button id="imageZoomFit" class="ghost" type="button">符合視窗</button>
+        <button id="imageZoomActual" class="ghost" type="button">100%</button>
+        <span class="zoom-hint">Ctrl ＋ 滾輪也可縮放</span>
+      </div>
+      <div id="imagePreviewContent" class="image-preview-content"><div id="imagePreviewLoading" class="preview-loading">圖片載入中…</div><div id="imagePreviewStage" class="image-preview-stage"><img id="imagePreview" alt="附件圖片預覽"></div></div>
+      <footer><span class="spacer"></span><a id="imagePreviewDownload" class="secondary button-link" href="#">下載原始檔</a><button id="closeImagePreviewFooter" class="ghost" type="button">關閉</button></footer>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+  <datalist id="employeesList"></datalist>
+  <datalist id="locationsList"></datalist>
+  <script src="app.js"></script>
+</body>
+</html>

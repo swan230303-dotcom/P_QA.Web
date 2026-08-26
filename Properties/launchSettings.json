@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "P_QA.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:54562;http://localhost:54563"
+    }
+  }
+}
