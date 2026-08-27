@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using Microsoft.Data.SqlClient;
 using PQA.Web.Models;
 using PQA.Web.Services;
@@ -94,11 +95,11 @@ public sealed class WorkflowRepository
             if (!await reader.ReadAsync(ct)) return null;
             if (definition.IsLineBased)
             {
-                do { document.Items.Add(ReadFields(reader, definition.Fields.Select(x => x.Name))); }
+                do { document.Items.Add(ReadFields(reader, definition.Fields)); }
                 while (await reader.ReadAsync(ct));
                 document.Fields = new Dictionary<string, string?>(document.Items[0]);
             }
-            else document.Fields = ReadFields(reader, definition.Fields.Select(x => x.Name));
+            else document.Fields = ReadFields(reader, definition.Fields);
         }
 
         if (definition.DetailTable is not null && definition.DetailFields is not null)
@@ -106,7 +107,7 @@ public sealed class WorkflowRepository
             await using var cmd = new SqlCommand($"SELECT TOP (1) * FROM {Quote(definition.DetailTable)} WHERE {Quote(WorkflowDefinition.KeyColumn)}=@case", cn);
             cmd.Parameters.Add("@case", SqlDbType.NVarChar, 20).Value = document.CaseNumber;
             await using SqlDataReader reader = await cmd.ExecuteReaderAsync(ct);
-            if (await reader.ReadAsync(ct)) document.Details = ReadFields(reader, definition.DetailFields.Select(x => x.Name));
+            if (await reader.ReadAsync(ct)) document.Details = ReadFields(reader, definition.DetailFields);
         }
         document.Attachments = await LoadAttachmentsAsync(cn, definition, document.CaseNumber, ct);
         return document;
@@ -270,11 +271,12 @@ public sealed class WorkflowRepository
     {
         string value = (raw ?? "").Trim();
         if (field.InputType == "checkbox") return value.Equals("1") || value.Equals("true", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
-        if (field.IsDateTime)
+        if (field.InputType == "date")
         {
-            if (string.IsNullOrWhiteSpace(value)) return DBNull.Value;
-            if (!DateTime.TryParse(value, out DateTime date)) throw new ArgumentException($"{field.Label}日期格式不正確。");
-            return date;
+            if (string.IsNullOrWhiteSpace(value)) return field.IsDateTime ? DBNull.Value : "";
+            if (!DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date))
+                throw new ArgumentException($"{field.Label}必須是有效的西元日期。");
+            return field.IsDateTime ? date.ToDateTime(TimeOnly.MinValue) : date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         }
         return value;
     }
@@ -287,6 +289,8 @@ public sealed class WorkflowRepository
             values.TryGetValue(field.Name, out string? value);
             if (field.Required && string.IsNullOrWhiteSpace(value)) throw new ArgumentException($"{field.Label}為必填。");
             if ((value ?? "").Length > field.MaxLength) throw new ArgumentException($"{field.Label}不可超過 {field.MaxLength} 字元。");
+            if (!string.IsNullOrWhiteSpace(value) && field.Options is not null && !field.Options.Contains(value, StringComparer.Ordinal))
+                throw new ArgumentException($"{field.Label}選項無效。");
         }
     }
 
@@ -299,6 +303,37 @@ public sealed class WorkflowRepository
             result[name] = value is DBNull ? "" : value is DateTime date ? date.ToString("yyyy-MM-dd") : Convert.ToString(value)?.Trim();
         }
         return result;
+    }
+
+    private static Dictionary<string, string?> ReadFields(IDataRecord reader, IEnumerable<FieldDefinition> fields)
+    {
+        var result = new Dictionary<string, string?>();
+        foreach (FieldDefinition field in fields)
+        {
+            object value = reader[field.Name];
+            result[field.Name] = field.InputType == "date" ? DisplayDate(value) : value is DBNull ? "" : Convert.ToString(value)?.Trim();
+        }
+        return result;
+    }
+
+    private static string DisplayDate(object value)
+    {
+        if (value is DBNull) return "";
+        if (value is DateTime dateTime) return dateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        string text = Convert.ToString(value)?.Trim() ?? "";
+        if (DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly western))
+            return western.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+        string digits = new(text.Where(char.IsDigit).ToArray());
+        if (digits.Length == 7 &&
+            int.TryParse(digits[..3], out int rocYear) &&
+            int.TryParse(digits.Substring(3, 2), out int month) &&
+            int.TryParse(digits.Substring(5, 2), out int day))
+        {
+            try { return new DateOnly(rocYear + 1911, month, day).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture); }
+            catch (ArgumentOutOfRangeException) { }
+        }
+        return "";
     }
 
     private static string Quote(string identifier) => $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]";
