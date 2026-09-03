@@ -55,6 +55,18 @@
         </div>
         <div class="table-card"><div id="resultSummary" class="table-summary"></div><div class="table-scroll"><table><thead id="resultHead"></thead><tbody id="resultBody"></tbody></table></div></div>
       </section>
+
+      <section id="imageSearchView" class="image-search-view hidden">
+        <div class="workspace-heading"><div><button id="imageSearchBack" class="text-button" type="button">← 返回功能選單</button><p class="eyebrow">AI VISUAL SEARCH</p><h1>以圖搜圖</h1><p>上傳實物照片，從已載入記憶體的官方圖庫找出最相近圖片。</p></div></div>
+        <div class="image-search-panel">
+          <div class="image-search-controls"><label class="field">官方圖片資料夾<select id="imageSearchFolder"></select></label><button id="imageIndexRebuild" class="secondary" type="button">重新載入圖庫</button><div id="imageIndexStatus" class="index-status">讀取索引狀態中…</div></div>
+          <div class="image-query-card">
+            <label id="imageDropZone" class="image-drop-zone"><input id="imageSearchFile" type="file" accept="image/jpeg,image/png,image/webp,image/bmp,image/tiff"><img id="imageQueryPreview" class="hidden" alt="待搜尋圖片預覽"><span id="imageDropHint"><strong>選擇或拖曳實物照片</strong><small>JPG、PNG、WebP、BMP、TIFF，最多 20 MB</small></span></label>
+            <div class="image-query-actions"><label class="field compact-field">顯示筆數<select id="imageSearchTopK"><option>6</option><option selected>12</option><option>24</option><option>50</option></select></label><button id="imageSearchButton" class="primary" type="button">開始比對</button></div>
+          </div>
+        </div>
+        <div class="image-results-heading"><h2>相似圖片</h2><span id="imageSearchSummary"></span></div><div id="imageSearchResults" class="image-result-grid"><div class="image-result-empty">請先選擇一張實物照片。</div></div>
+      </section>
     </main>
   </div>
 

@@ -7,3 +7,5 @@ connections.key
 *.user
 *.suo
 logs/
+image-search-cache/
+OnnxModels/*.onnx

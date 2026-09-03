@@ -2,6 +2,7 @@ using System.Text.Json;
 using PQA.Web.Data;
 using PQA.Web.Models;
 using PQA.Web.Services;
+using PQA.Web.ImageSearch;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
@@ -10,6 +11,13 @@ builder.Services.AddSingleton<SecureSettingsProvider>();
 builder.Services.AddSingleton<SessionService>();
 builder.Services.AddSingleton<QaFileService>();
 builder.Services.AddScoped<WorkflowRepository>();
+builder.Services.AddControllers();
+builder.Services.AddOptions<ImageSearchOptions>()
+    .Bind(builder.Configuration.GetSection(ImageSearchOptions.SectionName))
+    .ValidateDataAnnotations();
+builder.Services.AddSingleton<OnnxImageEncoder>();
+builder.Services.AddSingleton<ImageSearchIndex>();
+builder.Services.AddHostedService<ImageSearchWarmupService>();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
@@ -149,6 +157,8 @@ app.MapDelete("/api/workflows/{moduleId}/{caseNumber}/attachments/{sequence:int}
 app.MapGet("/api/holidays", async (WorkflowRepository repository, CancellationToken ct) => Results.Ok(await repository.GetHolidaysAsync(ct)));
 app.MapPost("/api/holidays/{date}", async (DateTime date, WorkflowRepository repository, CancellationToken ct) => { await repository.AddHolidayAsync(date, ct); return Results.Ok(); });
 app.MapDelete("/api/holidays/{date}", async (DateTime date, WorkflowRepository repository, CancellationToken ct) => { await repository.DeleteHolidayAsync(date, ct); return Results.NoContent(); });
+
+app.MapControllers();
 
 app.MapFallbackToFile("index.html");
 app.Run();
